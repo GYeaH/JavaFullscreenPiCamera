@@ -94,7 +94,6 @@ public class Shutter{
 		try{
 			piCamera.takeStill(name, width, height);
 		} catch (IOException | InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

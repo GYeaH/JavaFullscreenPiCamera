@@ -7,7 +7,8 @@ import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-public class Preview {
+//public class Preview {
+public class Preview implements Runnable{
 
 	/**
 	 * x coordinate planned to bas on the location of panel
@@ -35,10 +36,15 @@ public class Preview {
 	private BufferedImage bufferImg = null;
 	private ImageIcon previewBufferedImg = null;
 
+	private JLabel displayLabel;
+
 	private boolean previewTrigger = false;
 
 	//constructor
-	public Preview(){
+	public Preview(JLabel displayLabel){
+
+		this.displayLabel = displayLabel;
+
 		//initial piCamera
 		try{
 			piCamera = new RPiCamera();
@@ -50,33 +56,30 @@ public class Preview {
 	 * call from jrpicam
 	 * piCamera.turnOnPreview(x, y, width, height);
 	 */
+	/*
 	public void enablePreview() {
 
 	}
-
+*/
 	/*ADDITION*/
-	public void enablePreview(final JLabel displayLabel) {
+	public void enablePreview() {
 		//turn off default preview
 		piCamera.turnOffPreview();
 
 		previewTrigger ^=true;
 
-		while (previewTrigger) {
-			java.awt.EventQueue.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						bufferImg = piCamera.takeBufferedStill(width, height);
-						previewBufferedImg = new ImageIcon(bufferImg);
-						displayLabel.setIcon(previewBufferedImg);
-						displayLabel.repaint();
+		while(!previewTrigger){
+			try {
+				bufferImg = piCamera.takeBufferedStill(width, height);
+				previewBufferedImg = new ImageIcon(bufferImg);
+				displayLabel.setIcon(previewBufferedImg);
+				displayLabel.repaint();
 
-					} catch (InterruptedException | IOException e) {
-						e.printStackTrace();
-					}
-				}
-			});
+			} catch (InterruptedException | IOException e) {
+				e.printStackTrace();
+			}
 		}
+
 	}
 
 
@@ -91,4 +94,9 @@ public class Preview {
 		bufferImg = null;
 	}
 
+
+	@Override
+	public void run() {
+		enablePreview();
+	}
 }

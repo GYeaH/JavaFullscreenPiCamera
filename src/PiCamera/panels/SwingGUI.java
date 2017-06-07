@@ -36,7 +36,7 @@ public class SwingGUI {
     private JButton previousButton;
     private JButton nextButton;
     private JPanel viewPanel;
-    private JLabel viewArea;
+    /****************************************/
     private JPanel northenControlPanel;
     private JPanel photoNorthernPanel;
     private JLabel previewLabel;
@@ -48,6 +48,8 @@ public class SwingGUI {
     private JButton photoPanelExitButton;
     private JPanel albumPanelExitPanel;
     private JButton albumPanelExitButton;
+    private JPanel photoDisplayPanel;
+    private JLabel photoDisplayLabel;
 
 
     /*global variables later need to be moved*/
@@ -55,16 +57,13 @@ public class SwingGUI {
     static GraphicsDevice device = GraphicsEnvironment
             .getLocalGraphicsEnvironment().getScreenDevices()[0];
 
+    static Controllers controllers = new Controllers();
 
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("Pi Camera");
         frame.setContentPane(new SwingGUI().cardsPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        //set frame to full screen
-        frame.setUndecorated(true);
-        device.setFullScreenWindow(frame);
 
         frame.pack();
 
@@ -89,8 +88,9 @@ public class SwingGUI {
 
         //service registrations
         final Shutter shutter = new Shutter();
-        final Preview preview = new Preview();
-        final Controllers controllers = new Controllers();
+        final Preview preview = new Preview(previewLabel);
+        //put preview to another thread
+        final Thread previewThread = new Thread(preview);
 
         //buttons actions
         exitButton.addMouseListener(new MouseAdapter() {
@@ -106,8 +106,7 @@ public class SwingGUI {
             public void mouseReleased(MouseEvent e) {
                 super.mouseReleased(e);
                 c.show(cardsPanel,"photoPanelCard");
-                //enable preview when photo panel shows
-                //preview.enablePreview(previewLabel);
+
                 previewLabel.setText("<html><p>preview will be displayed at here<br>tap HERE to take a photo</p></html>");
                 previewLabel.setForeground(Color.white);
             }
@@ -118,8 +117,7 @@ public class SwingGUI {
                 super.mouseReleased(e);
                 c.show(cardsPanel,"albumPanelCard");
                 //load photo when album panel shows
-                controllers.showCurrentIndexedPhoto(viewArea);
-                //viewArea.setText("component show display enabled");
+                controllers.showCurrentIndexedPhoto(photoDisplayLabel);
             }
         });
         photo_menuButton.addMouseListener(new MouseAdapter() {
@@ -128,7 +126,8 @@ public class SwingGUI {
                 super.mouseReleased(e);
                 c.show(cardsPanel,"menuPanelCard");
                 //disable preview when photo panel switched
-                //preview.disablePreview();
+                preview.disablePreview();
+                //previewThread.interrupt();
             }
         });
         album_menuButton.addMouseListener(new MouseAdapter() {
@@ -159,37 +158,31 @@ public class SwingGUI {
         });
 
         /******************** ALBUM PANEL ************************/
-        viewArea.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentShown(ComponentEvent e) {
-                super.componentShown(e);
-
-            }
-        });
         nextButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
                 super.mouseReleased(e);
-                //viewArea.setText("> button pressed");
-                controllers.switchToNext(viewArea,infoArea);
+                //photoDisplayArea.setText("> button pressed");
+                controllers.switchToNext(photoDisplayLabel,infoArea);
             }
         });
         previousButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
                 super.mouseReleased(e);
-                //viewArea.setText("< button pressed");
-                controllers.switchToPrevious(viewArea,infoArea);
+                //photoDisplayArea.setText("< button pressed");
+                controllers.switchToPrevious(photoDisplayLabel,infoArea);
             }
         });
         deleteButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
                 super.mouseReleased(e);
-                controllers.deleteImage(viewArea,infoArea);
+                controllers.deletePhoto(photoDisplayLabel,infoArea);
             }
         });
-        viewArea.addMouseListener(new MouseAdapter() {
+
+        photoDisplayPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
                 super.mouseReleased(e);
@@ -215,8 +208,7 @@ public class SwingGUI {
             @Override
             public void mouseReleased(MouseEvent e) {
                 super.mouseReleased(e);
-
-                controllers.photoRotationOperation(viewArea, infoArea);
+                controllers.photoRotationOperation(photoDisplayLabel,infoArea);
             }
         });
     }
@@ -232,7 +224,7 @@ public class SwingGUI {
 
         /******************** MENU PANEL ************************/
         exitButtonPanel.setPreferredSize(new Dimension(displayW,50));
-        int exitPanelH = exitButtonPanel.getPreferredSize().height;
+        int exitPanelH = 80;
 
         System.out.println(exitPanelH);
 
@@ -268,6 +260,7 @@ public class SwingGUI {
         photoPanelControllPanel.setPreferredSize(new Dimension(displayW,exitPanelH));
 
         photoPanelExitPanel.setPreferredSize(new Dimension(exitPanelH,exitPanelH));
+        photoPanelExitButton.setPreferredSize(photoPanelExitPanel.getPreferredSize());
 
         //components' colors
         photo_menuButton.setBackground(Color.blue);
@@ -294,9 +287,11 @@ public class SwingGUI {
         int viewW = displayW - buttonW - buttonW;
 
         viewPanel.setPreferredSize(new Dimension(viewW, albumCentreH));
-        viewArea.setPreferredSize(new Dimension(viewPanel.getWidth(), viewPanel.getHeight()));
 
         albumPanelControllPanel.setPreferredSize(new Dimension(displayW,exitPanelH));
+
+        albumPanelExitPanel.setPreferredSize(new Dimension(exitPanelH,albumPanelControllPanel.getHeight()));
+        albumPanelExitButton.setPreferredSize(albumPanelExitPanel.getPreferredSize());
 
         //components' colors
         rotationButton.setBackground(Color.white);

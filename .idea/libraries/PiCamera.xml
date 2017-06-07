@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="PiCamera">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/PiCamera.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
