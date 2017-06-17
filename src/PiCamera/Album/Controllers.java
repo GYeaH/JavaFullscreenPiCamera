@@ -19,27 +19,26 @@ public class Controllers{
 
 
     private int photoIndex = 0;
-    private BufferedImage photoImg = null;
-    private ImageIcon loadPhoto;
+
     private boolean infoDisplaySwitcher = false;
 
     //default directory
-    private static String path = "/home/pi/Pictures/";
+    public static String lookupPath = "img/".replace("/",File.separator);
+    public static String lookupFormat = "png";
 
-    Photo photoObj = new Photo();
+    /*** AFTER PHOTO CLASS ADD ***/
+    //Photo photoObj = new Photo();
 
     private Vector<Photo> photoList = new Vector<>();
 
-
-
     private Vector<Photo> loadPhotoList(){
         //find format defined files under directory
-        File dir = new File(path);
+        File dir = new File(lookupPath);
 
         File[] files = dir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return name.toLowerCase().endsWith("." + photoObj.getFormat());
+                return name.toLowerCase().endsWith("." + lookupFormat);
             }
         });
 
@@ -69,27 +68,6 @@ public class Controllers{
 
 
     /**
-     *  @param photoIndex photoImg index
-     *  @param photoDisplayLabel display photoDisplayLabel, expect JPanel as parent container of passed JLabel
-     */
-
-    private void loadThumbnail(int photoIndex, JLabel photoDisplayLabel){
-        //load corresponding photo object
-        photoObj = photoList.elementAt(photoIndex);
-
-        //set thumbnail first
-        photoObj.setThumbnail(photoDisplayLabel);
-        //get thumbnail after set
-        BufferedImage bufferedThumbnail = photoObj.getThumbnail();
-
-        this.loadPhoto = new ImageIcon(bufferedThumbnail);
-
-        photoDisplayLabel.setIcon(loadPhoto);
-        photoDisplayLabel.repaint();
-
-    }
-
-    /**
      * @param displayLabel label displays photo
      * @param infoLabel label for information display which will be visible when delete operation complete
      * */
@@ -98,7 +76,7 @@ public class Controllers{
         String info;
         String name = photoList.elementAt(photoIndex).getName();
 
-        File file = new File(path + name);
+        File file = new File(lookupPath + name);
 
         try{
             displayLabel.setIcon(null);
@@ -110,7 +88,6 @@ public class Controllers{
             //display previous photo
             switchToPrevious(displayLabel,infoLabel);
 
-            //shows file deletion information after delete operation complete
             info = "Photo deleted from directory: " + file.getAbsolutePath();
 
         }catch (Exception e){
@@ -123,18 +100,17 @@ public class Controllers{
         //display file deletion information after operation
         turnOnInfo(infoLabel,info);
 
-
     }
 
     public void saveModifiedPhoto(BufferedImage modifiedPhoto, int photoIndex, JLabel infoLabel){
 
         String name = photoList.elementAt(photoIndex).getName();
-        File file = new File(path + name);
+        File file = new File(lookupPath + name);
 
         String info;
 
         try {
-            ImageIO.write(modifiedPhoto,photoObj.getFormat(),file);
+            ImageIO.write(modifiedPhoto,lookupFormat,file);
 
             info = "modification saved";
 
@@ -161,7 +137,12 @@ public class Controllers{
 
         saveModifiedPhoto(currentPhotoImg,photoIndex,infoLabel);
 
-        loadThumbnail(photoIndex,displayLabel);
+
+        Photo photoObj = photoList.elementAt(photoIndex);
+        photoObj.getPhotoImage();
+        Thumbnail thumbnail = new Thumbnail(photoObj);
+
+        thumbnail.loadThumbnailtoLabel(displayLabel);
 
     }
 
@@ -173,7 +154,12 @@ public class Controllers{
             photoIndex = 0;
         else  photoIndex ++;
 
-        loadThumbnail(photoIndex,displayLabel);
+
+        Photo photoObj = photoList.elementAt(photoIndex);
+        photoObj.getPhotoImage();
+        Thumbnail thumbnail = new Thumbnail(photoObj);
+
+        thumbnail.loadThumbnailtoLabel(displayLabel);
 
         //hide information
         turnOffInfo(infoLabel);
@@ -188,7 +174,13 @@ public class Controllers{
             photoIndex = photoList.size()-1;
         else photoIndex --;
 
-        loadThumbnail(photoIndex,displayLabel);
+
+        Photo photoObj = photoList.elementAt(photoIndex);
+        photoObj.getPhotoImage();
+        Thumbnail thumbnail = new Thumbnail(photoObj);
+
+        thumbnail.loadThumbnailtoLabel(displayLabel);
+
 
         //hide information photoDisplayLabel
         turnOffInfo(infoLabel);
@@ -199,7 +191,11 @@ public class Controllers{
         loadPhotoList();
 
         //load first photo
-        loadThumbnail(photoIndex,displayLabel);
+        Photo photoObj = photoList.elementAt(photoIndex);
+        photoObj.getPhotoImage();
+        Thumbnail thumbnail = new Thumbnail(photoObj);
+
+        thumbnail.loadThumbnailtoLabel(displayLabel);
     }
 
 

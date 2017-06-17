@@ -1,8 +1,6 @@
 package PiCamera.Album;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +11,6 @@ public class Photo {
     private String info;
 
     private BufferedImage photoImage;
-    private BufferedImage thumbnail;
 
     private int width;
     private int height;
@@ -21,16 +18,7 @@ public class Photo {
     //default directory
     private static String path = "/home/pi/Pictures/";
 
-    private static String format = "png";
-
-
     //constructor
-    public Photo() {
-        this.photoImage = null;
-        this.name = "";
-    }
-
-
     public Photo(String name) {
         //do not load photoImage in the beginning to prevent memory usage
         this.photoImage = null;
@@ -83,38 +71,10 @@ public class Photo {
     }
 
     public BufferedImage getPhotoImage() {
-        return loadImage(name);
-    }
-
-
-    /**
-     *  @param displayLabel display photoDisplayLabel, expect JPanel as parent container of passed JLabel
-     */
-    public void setThumbnail(JLabel displayLabel) {
-        //get uncompressed photoImage first
         this.photoImage = loadImage(name);
 
-
-        double ratio = (double) width / height;
-
-        //use photoDisplayLabel's parent panel to define the height of display
-        JPanel labelPanel = (JPanel)displayLabel.getParent();
-        int thumbHeight = labelPanel.getHeight();
-        int thumbWidth = (int)(thumbHeight * ratio);
-
-        //update display area according to content
-        displayLabel.setPreferredSize(new Dimension(thumbWidth,thumbHeight));
-
-
-        Image thumbImage = photoImage.getScaledInstance(thumbWidth,thumbHeight,Image.SCALE_FAST);
-
-        this.thumbnail = new BufferedImage(thumbImage.getWidth(null),thumbImage.getHeight(null),BufferedImage.TYPE_INT_RGB);
-
-        this.thumbnail.getGraphics().drawImage(thumbImage, displayLabel.getX(),displayLabel.getY(),null);
-
+        return photoImage;
     }
-
-    public BufferedImage getThumbnail() {return thumbnail; }
 
     public int getWidth() {
         return width;
@@ -124,17 +84,8 @@ public class Photo {
         return height;
     }
 
-    public static String getPath() {
-        return path;
-    }
-
-    public static String getFormat() {return format;}
-
-
-
-    private BufferedImage loadImage(String name){
+    public BufferedImage loadImage(String name){
         System.out.println("in the loadImage method");
-        System.out.println("path: " + path);
         System.out.println("name: " + name);
 
         BufferedImage loadPhotoImg;
@@ -158,6 +109,5 @@ public class Photo {
 
         return loadPhotoImg;
     }
-
 
 }
